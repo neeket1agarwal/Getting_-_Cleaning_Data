@@ -60,5 +60,5 @@ rm(activity.name,data,label,master.data,subject,
    train.data,train.labels,train.subject)
 
 #Write data into files inside Output_data folder
-write.csv(avg.data,"Output_data/avg_data.csv",row.names = FALSE)
-write.csv(subdata,"Output_data/Mean_Std_Data.csv",row.names = FALSE)
+write.table(avg.data,"Output_data/avg_data.txt",row.names = FALSE)
+write.table(subdata,"Output_data/Mean_Std_Data.txt",row.names = FALSE)
