@@ -1,0 +1,76 @@
+---
+title: "CodeBook"
+author: "Neeket Agarwal"
+date: "4/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Human Activity Recognition Using Smartphones Dataset
+
+The experiments have been carried out with a group of 30 volunteers within an age bracket of 19-48 years. Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist. Using its embedded accelerometer and gyroscope, we captured 3-axial linear acceleration and 3-axial angular velocity at a constant rate of 50Hz. The experiments have been video-recorded to label the data manually. The obtained dataset has been randomly partitioned into two sets, where 70% of the volunteers was selected for generating the training data and 30% the test data. 
+
+The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window). The sensor acceleration signal, which has gravitational and body motion components, was separated using a Butterworth low-pass filter into body acceleration and gravity. The gravitational force is assumed to have only low frequency components, therefore a filter with 0.3 Hz cutoff frequency was used. From each window, a vector of features was obtained by calculating variables from the time and frequency domain.
+
+For each record the datasets provide:
+- Triaxial acceleration from the accelerometer (total acceleration) and the estimated body acceleration.
+- Triaxial Angular velocity from the gyroscope. 
+- A 561-feature vector with time and frequency domain variables. 
+- Its activity label. 
+- An identifier of the subject who carried out the experiment.
+
+## Variables in the tidy datasets
+
+The tidied data set (subdata) contains 75 variables for the each 30 subject IDs and 6 activities. 
+```{r Number of variables}
+length(subdata)
+```
+```{r Number of unique Subject ID}
+length(unique(subdata$Subject.ID))
+```
+```{r Number of unique activities}
+length(unique(subdata$activity))
+```
+
+The following table describes the snippets which forms the variables and its calculations.
+
+Variable/Snippet |  Description 
+------------- | ----------------------------------------
+Subject.ID | Subject ID for each of the 30 measurement. 
+activity | One of the 6 Activity performed during the measurement, i.e., walking, walking upstairs, walking downstairs, sitting, standing, and laying.  
+t | Time domain signals collected at a rate of 50 Hz. Data were filtered using a median filter and a 3rd order low pass Butterworth filter with a corner frequency of 20 Hz to remove noise.
+f | Frequency domain signals calculated by applying a Fast Fourier Transform (FFT) to the time domain signal.
+Body | The portion of the accelerometer measurement attributed to the subject.
+Gravity | The portion of the accelerometer measurement attributed to gravity.
+Acc | A linear acceleration measurement taken by the accelerometer. 
+Gyro | An angular acceleration measurement taken by gyroscope
+Jerk | Jerk was calculated by taking the derivative in time of the measurement.
+Mag | The magnitude of the three-dimensional signals were calculated using the Euclidean norm.
+Mean | The mean of a given measurement.
+Std | The standard deviation of a given measurement.
+X, Y, or Z | Indicates the three-dimensional direction of the measurement.
+Angle | Angular value between vectors. 
+
+The full variable list can be obtained by combining these various snippets.
+
+## List of variables
+
+```{r List of variables}
+names(subdata)
+```
+## Summaries calculated
+Data from various files are read into the following data frames:
+- data: Contains data from test and train x-measurements 
+- label: Contains activity labels for test and train measurements 
+- subject: Contains Subject ID for test and train measurements
+- activity.name : Contains activity ID to name mapping 
+- master.data: Contains all measurement, Subject ID and activity data 
+- subdata: Contains only the measurements on the mean and standard deviation for each measurement 
+- avg.data: Contains independent tidy data set with the average of each variable for each activity and each subject. 
+- subdata.txt: Contains subdata in txt format in Output_data folder
+- avg_data.txt: Contains avg.data in txt format in Output_data folder
+
+

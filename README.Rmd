@@ -1,0 +1,130 @@
+---
+title: "README"
+author: "Neeket Agarwal"
+date: "4/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Files included in the repository
+
+* README.Rmd: A markdown file that describes the code used in the analysis
+* run_analysis.R: An R script that takes a set of raw data files and outputs a text file, summarydata.txt
+* CodeBook.Rmd: A markdown file that contains a description of all variables
+
+## Loading run_analysis
+
+An R script file, "run_analysis.R", has been created to combine and analyze particular data files and summarize the output in "avg_data.txt". For the script to run properly, the data files and run_analysis.R must be in your working directory. Once you have these files in your working directory, the script can be called to perform the analysis with:
+
+```{r, message = FALSE}
+    source("run_analysis.R")
+```
+
+## Inner Workings of run_analysis.R
+
+### Merge the training and the test sets to create one data set
+
+The first step in the analysis is to create one master data set by reading in all of the data files and merging them. The data files to read in should be extracted in the same working directory as the run_analysis.R script. The data files are:
+
+* train/X_train.txt: contains accelerometer and gyroscope measurements for ~70% of randomly selected data points;
+* train/y_train.txt: contains the corresponding activity factor level for the X_train.txt data set;
+* train/subject_train.txt: contains the corresponding subject identifier for the X_train.txt data set;
+* test/X_test.txt: contains accelerometer and gyroscope measurements for ~30% of randomly selected data points;
+* test/y_test.txt: contains the corresponding activity factor level for the X_test.txt data set;
+* test/subject_test.txt: contains the corresponding subject identifier for the X_test.txt data set;
+* features.txt: contains the list of all the features for the data set;
+* activity_labels.txt: contains the mapping for labels of activity names;
+
+The R code used to read all of the data files in is as follows:
+
+```{r}
+    test.data <- read.table("test/X_test.txt")
+    train.data <- read.table("train/X_train.txt")
+    test.label <- read.table("test/y_test.txt")
+    train.label <- read.table("train/y_train.txt")
+    test.subject <- read.table("test/subject_test.txt")
+    train.subject <-read.table("train/subject_train.txt")
+    cnames.data <- read.table("features.txt")
+    activity.name <- read.table("activity_labels.txt")
+```
+
+The first step in merging these data files is to create three separate data sets: a measurement data set, a subject data set and an activity data set such that each includes the measurements, subject and activity for both train and test subsets respectively. To accomplish this in R, the data files need to be row bound:
+
+```{r}
+    data <- rbind(train.data,test.data)
+    label <- rbind(train.label,test.label)
+    subject <- rbind(train.subject,test.subject)
+```
+
+Once these data sets exist, the columns can be given sensible names to convey the meaning of data stored in these columns. Using completely descriptive variable names is difficult to accomplish since each name needs to convey a lot of information. Thus, in line with the existing feature names a naming pattern consisting of snippets is used(as described in CodeBook). Meta-characters like "(", ")" were removed from feature names. This was achieved using the following code: 
+
+```{r}
+    cnames.data <- make.names(str_replace_all(cnames.data[,2],"[()]",""))
+    names(data) <- cnames.data
+    names(label) <- "activity"
+    names(subject) <- "Subject.ID"
+```
+
+Once these individual components are ready, all of these are merged to form a single master data
+
+```{r}
+    master.data <- cbind(subject,label,data)
+```
+
+### Extract only the measurements on the mean and standard deviation for each measurement
+
+Now that we have the master.data and its components(data,subject and label) ready, grep is used on "data" to easily identify column names that matches the string "mean" or "std".   
+
+```{r}
+    extracted.cols <- grep("([Mm]ean|std)",names(data))
+    submeasure <- data[,extracted.cols]
+```
+
+Additionally, we observe that we get some extra columns with "meanFreq" in our dataset. The "meanFreq" is calculated by using a weighted average (not strictly a mean). Considering we have to exclude columns with text "meanFreq". This is achieved using the following code.
+
+
+```{r}
+    removed.cols <- grep("(meanFreq)",names(submeasure))
+    submeasure <- submeasure[,-removed.cols]
+```
+
+Merging this subset containing measurement data with the subject and label data frames we get the required subset data(subdata).
+```{r}
+    subdata <- cbind(subject,label,submeasure)
+```
+
+### Use descriptive activity names to name the activities in the data set
+
+With the columns narrowed down into subdata, the next step is to use activity names in place of activity codes in subdata. These activity names has been fetched into activity.name from the file activity_labels.txt. The following R script accomplishes this replacement task:
+
+```{r}
+    subdata <- mutate(subdata,activity = activity.name[activity,2])
+```
+
+### Create a second, independent tidy data set with the average of each variable for each activity and each subject
+
+From the smaller, tidy data set, the data is grouped by subject and then by type of activity. The mean function is run for each of these combinations and the output is written into a separate data frame called "avg.data". The R code to accomplish this is as follows:
+
+```{r}
+    avg.data <- subdata %>%
+                    group_by(Subject.ID, activity) %>%
+                        summarise_all(mean)
+```
+
+The last activity is to write these 2 data frames into files so that they could be used directly. This is accomplised by the following code:
+
+```{r}
+    write.table(avg.data,"Output_data/avg_data.txt", row.names = FALSE)
+    write.table(subdata,"Output_data/Mean_Std_Data.txt", row.names = FALSE)
+
+```
+
+To read this text file back into R, this code would be used:
+
+```{r, results = FALSE}
+    read.table("Output_data/Mean_Std_data.txt")
+    read.table("Output_data/avg_data.txt")
+```
